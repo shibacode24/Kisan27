@@ -14,5 +14,21 @@ class Attendance extends Model
 		'role',	
 		'time',
 		'date',
-		'in_out'];
+		'in_out'
+    ];
+
+    public function user_name($request)
+    {
+        if ($request->role == "asm") {
+            return $this->hasOne(Areamanager::class, 'id', 'user_id');
+        } elseif ($request->role == "sp") {
+            return $this->hasOne(SalePerson::class, 'id', 'user_id');
+        }
+      elseif ($request->role == "sm") {
+        return $this->hasOne(Salemanager::class, 'id', 'user_id');
+    } else {
+            // Handle other roles or return null if no match
+            return null;
+        }
+    }
 }

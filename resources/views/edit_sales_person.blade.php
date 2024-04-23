@@ -174,7 +174,7 @@
                                     </div>
                                     <div class="col-md-2" style="margin-top:15px;">
                                         <label>Password<font color="#FF0000">*</font></label>
-                                        <input type="text" placeholder=" " value="{{$saleperson_edit->Password}}" class="form-control" required/ name="pass">
+                                        <input type="text" placeholder=" " class="form-control" required/ name="pass">
                                     </div>
                                     <!-- <div class="col-md-2" style="margin-top:15px;">
                                                     <label>Gender<font color="#FF0000">*</font></label>

@@ -21,9 +21,9 @@ class Area_mastercontroller extends Controller
     public function index()
 
     {
-        User::where('id', 1)->update(['password' => Hash::make('12345')]);
-        User::where('id', 2)->update(['password' => Hash::make('12345')]);
-        User::where('id', 3)->update(['password' => Hash::make('12345')]);
+        // User::where('id', 1)->update(['password' => Hash::make('12345')]);
+        // User::where('id', 2)->update(['password' => Hash::make('12345')]);
+        // User::where('id', 3)->update(['password' => Hash::make('12345')]);
 
 
         $areamasters = Area_master::join('state', 'state.id', '=', 'area_master.State_id')

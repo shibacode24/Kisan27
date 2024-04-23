@@ -187,7 +187,7 @@
                                     </div>
                                     <div class="col-md-2" style="margin-top:15px;">
                                         <label>Password<font color="#FF0000">*</font></label>
-                                        <input type="text" placeholder=" " value="{{$areamanager_edit->Password}}" name="pass" class="form-control" required />
+                                        <input type="text" placeholder=" " name="pass" class="form-control" required />
                                     </div>
                                     <!-- <div class="col-md-2" style="margin-top:15px;">
                                                     <label>Pincode<font color="#FF0000">*</font></label>

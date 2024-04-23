@@ -5,7 +5,7 @@
     <!-- META SECTION -->
     <title>Kisan 27</title>
 
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -15,12 +15,13 @@
     <!-- CSS INCLUDE -->
     <link rel="stylesheet" type="text/css" id="theme" href="{{ asset('css/theme-default.css') }}" />
     <link rel="stylesheet" type="text/css" id="theme" href="{{ asset('css/notification.css') }}" />
-    <link rel="stylesheet" type="text/css" id="theme"
+    {{-- <link rel="stylesheet" type="text/css" id="theme"
         href=" https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" type="text/css" id="theme"
-        href="https://cdn.datatables.net/buttons/2.3.2/css/buttons.dataTables.min.css" />
-
-
+        href="https://cdn.datatables.net/buttons/2.3.2/css/buttons.dataTables.min.css" /> --}}
+<link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.1/css/buttons.dataTables.css">
+        
 
     <!-- EOF CSS INCLUDE -->
     @yield('extra_css')
@@ -69,8 +70,8 @@
                         <li><a href="{{ route('area_manager-index') }}"><span class="fa fa-plus"></span>ASM</a></li>
                         <li><a href="{{ route('sales_person-index') }}"><span class="fa fa-plus"></span>SP/JTM/TM/SO/STM
                                 Registration</a></li>
-                        <!-- <li><a href="subscription.html"><span class="fa fa-spinner"></span> Add Subscription for customer</a></li>
-                        <li><a href="modepayment.html"><span class="fa fa-money"></span> Mode of Payment</a></li> -->
+                        <li><a href="{{ route('retailers-index') }}"><span class="fa fa-plus"></span> Retailers</a></li>
+                        <li><a href="{{ route('distributor-index') }}"><span class="fa fa-plus"></span> Distributor</a></li> 
                     </ul>
                 </li>
                 <li class="xn-openable">
@@ -149,23 +150,28 @@
             <script type="text/javascript" src="{{ asset('js/plugins/tagsinput/jquery.tagsinput.min.js') }}"></script>
 
 
-            <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
 
 
             <script type="text/javascript" src="{{ asset('js/plugins/dropzone/dropzone.min.js') }}"></script>
             <script type="text/javascript" src="{{ asset('js/plugins/fileinput/fileinput.min.js') }}"></script>
             <script type="text/javascript" src="{{ asset('js/plugins/filetree/jqueryFileTree.js') }}"></script>
-
+            
+          
+            {{-- <script type="text/javascript" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
             <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.2/js/dataTables.buttons.min.js"></script>
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js
                          "></script>
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-
-
             <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js"></script>
-
-
-
+            <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+            <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script> --}}
+            <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+            <script src="https://cdn.datatables.net/buttons/3.0.1/js/dataTables.buttons.js"></script>
+            <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+            <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.html5.min.js"></script>
 
 
 
@@ -211,6 +217,15 @@
                         }, 200);
                     });
                 });
+
+               
+                        new DataTable('.datatable_new3', {
+                            layout: {
+                                topStart: {
+                                    buttons: ['excel', 'pdf']
+                                }
+                            }
+                        });
             </script>
             @yield('js')
 

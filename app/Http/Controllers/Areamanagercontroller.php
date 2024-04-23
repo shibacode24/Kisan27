@@ -175,6 +175,8 @@ class Areamanagercontroller extends Controller
     { 
         // dd($request->id);
 		
+        $areamanager = Areamanager::where('id', $request->id)->first();
+
 		 if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '.' . $file->getClientOriginalExtension();
@@ -203,7 +205,7 @@ class Areamanagercontroller extends Controller
                 'District_id' => $request->distric,
                 'Tehsil_id' => $request->tehsil,
                 'Username' => $request->user,
-                'Password' => $request->pass
+                'Password' => $request->pass ? Hash::make($request->get('pass')) : $areamanager->Password,
             ]
         );
         return redirect()->route('area_manager-index')->with(['success' => true, 'message' => 'Data Successfully Updated !']);

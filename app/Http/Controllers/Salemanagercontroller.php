@@ -146,11 +146,12 @@ class Salemanagercontroller extends Controller
      */
     public function update(Request $request)
     {
+        $salemanager = Salemanager::where('id',$request->id)->first();
         Salemanager::where('id', $request->id)->update(
             [
                 'Emp_id' => $request->emp_id,
                 'Name' => $request->name,
-                'Mobile_Number' => $request->mobile_no,
+                'Mobile_Number' => $request->Mobile_Number,
                 'Email_id' => $request->email,
                 'Address' => $request->address,
                 'City_id' => $request->city,
@@ -160,7 +161,7 @@ class Salemanagercontroller extends Controller
                 'District_id' => $request->distric,
                 'Tahsil_id' => $request->tt,
                 'Username' => $request->username,
-                'Password' => $request->password
+                'Password' => $request->password ? Hash::make($request->get('password')) : $salemanager->password
             ]
         );
         return redirect()->route('sales_manager-index')->with(['success' => true, 'message' => 'Data Successfully Updated !']);

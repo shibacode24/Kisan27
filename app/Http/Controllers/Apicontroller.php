@@ -18,6 +18,10 @@ use App\Models\SalePerson;
 use App\Models\tracking;
 use App\Models\Leave;
 use App\Models\Document;
+use App\Models\Retailers;
+use App\Models\Distributor;
+use App\Models\ds_to_sm;
+use App\Models\save_totalkilometer;
 use DB;
 use Illuminate\Http\Request;
 use Hash;
@@ -62,6 +66,30 @@ class Apicontroller extends Controller
     return response()->json(['status'=>false,'message'=>'User Not Found SM']); //array
      }
 	 } 
+     else if($request->role=="retailer")
+	 {
+		 $checkuser=Retailers::where('Username',$request->username)->first();
+		  if($checkuser && Hash::check($request->password,$checkuser->Password))
+     {
+    return response()->json(['status'=>true,'data'=>$checkuser,'role'=>"retailer"]); //array
+     }
+      else
+      {
+    return response()->json(['status'=>false,'message'=>'User Not Found retailer']); //array
+     }
+	 } 
+     else if($request->role=="distributor")
+	 {
+		 $checkuser=Distributor::where('Username',$request->username)->first();
+		  if($checkuser && Hash::check($request->password,$checkuser->Password))
+     {
+    return response()->json(['status'=>true,'data'=>$checkuser,'role'=>"distributor"]); //array
+     }
+      else
+      {
+    return response()->json(['status'=>false,'message'=>'User Not Found Distributor']); //array
+     }
+	 } 
 		 else{
 			 
 		 $checkuser=SalePerson::where('Username',$request->username)->first();
@@ -82,7 +110,7 @@ class Apicontroller extends Controller
   
     $insert=Attendance::create(
         [
-     'user_id'=>$request->user_id, //user-id ye table field hai oe $req->user-id ye data form se aa raha hai
+     'user_id'=>$request->user_id, //user-id ye table field hai or $req->user-id ye data form se aa raha hai
 	 'role'=>$request->role,		
      'time'=>date('G:i',strtotime($request->time)),
      'date'=>$request->date,
@@ -130,6 +158,15 @@ public function show_journeyplan(Request $request)
 
 public function journeyplan(Request $request)
  {
+
+    $new_name = "";
+    if (isset($request->photo) && $request->photo != 'null') {
+       $extension= explode('/', mime_content_type($request->photo))[1];
+       $data = base64_decode(substr($request->photo, strpos($request->photo, ',') + 1));
+       $new_name='retailers'.rand(000,999). time() . '.' .$extension;
+       file_put_contents(public_path('images/') . '/' . $new_name, $data);
+       }
+
     $insert=Journeyplan::create(
         [
      'user_id'=>$request->user_id, //user-id ye table field hai or $req->user-id ye data form se aa raha hai
@@ -148,7 +185,7 @@ public function journeyplan(Request $request)
      'mode_of_travel'=>$request->modeoftravel,
      'meter_reading' =>$request->meterreading,
      'task'=>$request->task,
-     'photo'=>$request->photo,
+     'photo'=>$new_name,
     ]);
     // dd($insert);
     if($insert->id)
@@ -356,6 +393,14 @@ public function journeyplan(Request $request)
  }
  public function get_photo(Request $request)
  {
+    $new_name = "";
+    if (isset($request->photimageo) && $request->image != 'null') {
+       $extension= explode('/', mime_content_type($request->image))[1];
+       $data = base64_decode(substr($request->image, strpos($request->image, ',') + 1));
+       $new_name='p'.rand(000,999). time() . '.' .$extension;
+       file_put_contents(public_path('images/get_photo') . '/' . $new_name, $data);
+       }
+
     $insert=Get_photo::create(
         [
      'journey_id'=>$request->journey_id,
@@ -363,7 +408,7 @@ public function journeyplan(Request $request)
 	 'role'=>$request->role,		
      'name'=>$request->name,
      'visitdetails'=>$request->visitdetails,
-     'image'=>$request->image,
+     'image'=>$new_name,
     ]);
     if($insert->id)
     {
@@ -391,6 +436,23 @@ else{
 }
 
  }
+
+ public function save_totalkilometer(Request $request)
+ {
+    $insert=save_totalkilometer::create([
+        'user_id'=>$request->user_id,
+		 'role'=>$request->role,	
+        'totalkilometer'=>$request->totalKMeters,
+    ]);
+if($insert->id){
+    return response()->json(['status'=>true,'message'=>'data recorded successfully']);
+}
+else{
+    return response()->json(['status'=>false,'message'=>'Somethig Error Occure']);
+}
+
+ }
+
 	public function get_tracking(Request $request)
    {
     //  dd($request->all());
@@ -428,6 +490,68 @@ else{
          return response()->json(['status'=>false,'message'=>'data not found']);
      }
    }
+
+   public function ds_against_tracking(Request $request)
+   {
+    $date_tracking=DB::table('tracking')
+     ->where('user_id',$request->user_id)
+    // ->where('role',$request->role)
+    // ->whereDate('created_at',$request->date)
+    ->select(array('latitude','longitude'))
+	->orderby('id','asc')
+    ->get();
+    if($date_tracking->count()>0)
+     {
+         return response()->json(['status'=>true,'data'=>$date_tracking]);
+     }
+     else
+     {
+         return response()->json(['status'=>false,'message'=>'data not found']);
+     }
+   }
+
+   public function get_all_sm(Request $request)
+   {
+    //  dd($request->all());
+        $get_sm=ds_to_sm::where('ds_id',$request->ds_id)//yaha humne sm ki id match ki
+        ->select('sm_id')//yaha humne colomn me se id select ki
+        ->get();
+        $sale_manager=[];//array create kiya kyu ki asm me  multiple value  store kiye
+        foreach($get_sm as $g){
+            $sm_ids=explode(',',$g->sm_id);
+            foreach($sm_ids as $a_id){
+                $manager_details=SaleManager::select('id','Name')->where('id',$a_id)->first();
+                if($manager_details){
+                    $sale_manager[]=$manager_details;
+                }
+            }
+        }
+        // echo json_encode($sale_manager);
+        // dd(1);
+        if(count($sale_manager)>0)
+        {
+   return response()->json(['status'=>true,'Data'=>$sale_manager]); //array
+}
+     else
+     {
+   return response()->json(['status'=>false,'message'=>'User Not Found']); //array
+    }
+    }
+
+    public function get_distributor()
+    {
+        $get_distributor = Distributor::all();
+
+        if($get_distributor)
+        {
+   return response()->json(['status'=>true,'Data'=>$get_distributor]); //array
+      }
+     else
+     {
+   return response()->json(['status'=>false,'message'=>'User Not Found']); //array
+    }
+
+    }
 	
 public function get_all_asm(Request $request)
    {
@@ -543,7 +667,47 @@ public function get_all_asm(Request $request)
         }
     }
 	
-    public function get_user(Request $request)
+    // public function get_user(Request $request)
+    // {
+    //     if ($request->role == "asm") {
+    //         $checkuser = Areamanager::where('id', $request->user_id)->first();
+    //         if ($checkuser) {
+    //             return response()->json(['status' => true, 'data' => $checkuser, 'role' => "asm"]);
+    //         } else {
+    //             return response()->json(['status' => false, 'message' => 'User Not Found SM']); //array
+    //         }
+    //     } else if ($request->role == "sm") {
+    //         $checkuser = Salemanager::where('id', $request->user_id)->first();
+    //         if ($checkuser) {
+    //             return response()->json(['status' => true, 'data' => $checkuser, 'role' => "sm"]); //array
+    //         } else {
+    //             return response()->json(['status' => false, 'message' => 'User Not Found SM']); //array
+    //         }
+    //     } else {
+    //         $checkuser = SalePerson::where('id', $request->user_id)->first();
+    //         if ($checkuser) {
+    //             return response()->json(['status' => true, 'data' => $checkuser, 'role' => "other"]); //array
+    //         } else {
+    //             return response()->json(['status' => false, 'message' => 'User Not Found Other']); //array
+    //         }
+    //     }
+    // }
+	// public function get_user(Request $request)
+    // {
+    //     if ($request->role == "asm") {
+    //         $checkuser = Areamanager::where('id', $request->user_id)->first();
+    //         if ($checkuser) {
+    //             return response()->json(['status' => true, 'data' => $checkuser, 'role' => "asm"]);
+    //         } else {
+    //             return response()->json(['status' => false, 'message' => 'User Not Found SM']); //array
+    //         }
+    //     } else if ($request->role == "retailer") {
+    //         $checkuser = Retailers::where('id', $request->user_id)->first();
+    //         if ($checkuser) {
+    //             return response()->json(['status' => true, 'data' => $checkuser, 'role' => "retailer"]); //array
+    //         } else {
+    //             return response()->json(…
+          public function get_user(Request $request)
     {
         if ($request->role == "asm") {
             $checkuser = Areamanager::where('id', $request->user_id)->first();
@@ -552,7 +716,24 @@ public function get_all_asm(Request $request)
             } else {
                 return response()->json(['status' => false, 'message' => 'User Not Found SM']); //array
             }
-        } else if ($request->role == "sm") {
+        } 
+		else if ($request->role == "retailer") {
+            $checkuser = Retailers::where('id', $request->user_id)->first();
+            if ($checkuser) {
+                return response()->json(['status' => true, 'data' => $checkuser, 'role' => "retailer"]); //array
+            } else {
+                return response()->json(['status' => false, 'message' => 'User Not Found Retailer']); //array
+            }
+		}
+         else if ($request->role == "distributor") {
+            $checkuser = Distributor::where('id', $request->user_id)->first();
+            if ($checkuser) {
+                return response()->json(['status' => true, 'data' => $checkuser, 'role' => "distributor"]); //array
+            } else {
+                return response()->json(['status' => false, 'message' => 'User Not Found Distributor']); //array
+            }
+		 }
+			else if ($request->role == "sm") {
             $checkuser = Salemanager::where('id', $request->user_id)->first();
             if ($checkuser) {
                 return response()->json(['status' => true, 'data' => $checkuser, 'role' => "sm"]); //array
@@ -568,8 +749,7 @@ public function get_all_asm(Request $request)
             }
         }
     }
-	
-	
+    
 	public function profile_update(Request $request)
     {
         if ($request->role == "asm") {
@@ -657,6 +837,43 @@ public function get_all_asm(Request $request)
     dd((float)$dist);
     return (float)$dist;
     // dd($dist);
+}
+
+public function post_retailers(Request $request)
+{
+
+    $retailers = new Retailers();
+    $retailers->user_id = $request->get('user_id');
+    $retailers->role = $request->get('role');
+    $retailers->Name = $request->get('retailer_name');
+    $retailers->firm_name = $request->get('firm_name');
+    $retailers->aadhar_card = $request->get('mobile_number');
+    $retailers->Mobile_Number = $request->get('aadhar_number');
+    $retailers->Address = $request->get('address');
+    
+    // Handle file upload
+    // if ($request->hasFile('photo')) {
+    //     $image = $request->file('photo');
+    //     $imageName = time() . '_' . $image->getClientOriginalName();
+    //     $image->move(public_path('images/retailers'), $imageName);
+    //     $retailers->front_shop_pic = $imageName;
+    // }
+    
+    $new_name = "";
+    if (isset($request->photo) && $request->photo != 'null') {
+       $extension= explode('/', mime_content_type($request->photo))[1];
+       $data = base64_decode(substr($request->photo, strpos($request->photo, ',') + 1));
+       $new_name='retailers'.rand(000,999). time() . '.' .$extension;
+       file_put_contents(public_path('images/retailers') . '/' . $new_name, $data);
+       $retailers->front_shop_pic = $new_name;
+       }
+
+    $retailers->Username = $request->get('username');
+    $retailers->Password = Hash::make($request->get('password'));
+    $retailers->save();
+
+    return response()->json(['status' => true,  'message' => 'Data Successfully Submitted!']);
+
 }
 
 

@@ -83,10 +83,15 @@ Route::post('change_password',[Apicontroller::class,'change_password']);
 
 Route::post('save_lat_long',[Apicontroller::class,'save_lat_long']);
 
+Route::post('retailers',[Apicontroller::class,'retailers']);
+
+Route::post('ds_against_tracking',[Apicontroller::class,'ds_against_tracking']);
+
+Route::get('get_all_sm',[Apicontroller::class,'get_all_sm']);
+
+Route::get('get_distributor',[Apicontroller::class,'get_distributor']);
 
 
-
-
-
+Route::post('save_totalkilometer',[Apicontroller::class,'save_totalkilometer']);
 
 

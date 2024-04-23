@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Areamanager;
 use App\Models\Assignteam;
+use App\Models\Attendance;
 use App\Models\Salemanager;
 use App\Models\SalePerson;
 use App\Models\state;
@@ -19,7 +20,7 @@ class DashboardController extends Controller
 {
   public function dashboard(Request $request)
   {
-    // dd($request->all());
+    //  dd($request->all());
 
     $states = state::all();
     $emps = SalePerson::all();
@@ -44,45 +45,364 @@ class DashboardController extends Controller
     $tracking_query = DB::table('tracking')->select('*', DB::raw('DATE(created_at) as date'), DB::raw('sum(distance) as distance'))->groupby('date');
 
     
-      $tracking_query = $tracking_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+      $tracking_query = $tracking_query->where(['role' => $request->role, 'user_id' => $request->sp_id]);
   
     if (isset($request->from_date) && isset($request->to_date)) {
       $tracking_query = $tracking_query->whereDate('created_at', '<=', $request->to_date)
         ->whereDate('created_at', '>=', $request->from_date);
     }
-    $tracking_query = $tracking_query->orderby('date', 'desc')->get();
+    if ($request->role == "sp") {
+      $tracking_query = DB::table('tracking')
+      // ->where('role', '=', 'sp')
+      ->leftjoin('sales_person','sales_person.id','=','tracking.user_id')
+      ->where(['role' => $request->role, 'sales_person.id' => $request->sp_id])
+      
+      ->select('sales_person.Name','sales_person.Mobile_Number','tracking.*');
+      }
+    $tracking_query = $tracking_query->get();
     
 
     //  echo json_encode( $tracking_query);
 
 
+    // $leave = DB::table('leave');
+    // if ($request->user_id != 'All') {
+    //   $leave = $leave->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+
+    // $leave = $leave->orderby('id', 'desc')->get();
+
     $leave = DB::table('leave');
-    if ($request->user_id != 'All') {
-      $leave = $leave->where(['role' => $request->role, 'user_id' => $request->user_id]);
+
+    // if ($request->user_id !== "All") {
+        $leave = $leave->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    if ($request->user_id == "All" && $request->role2 == "sm") {
+      $leave = DB::table('leave')
+      ->where('role', '=', 'sm')
+    ->leftjoin('sales_manager','sales_manager.id','=','leave.user_id')
+    ->select('sales_manager.Name','sales_manager.Mobile_Number','leave.*');
+  }
+  elseif ($request->user_id == "All" && $request->role2 == "sp") {
+    $leave = DB::table('leave')
+    ->where('role', '=', 'sp')
+    ->leftjoin('sales_person','sales_person.id','=','leave.user_id')
+  ->select('sales_person.Name','sales_person.Mobile_Number','leave.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "asm") {
+  $leave = DB::table('leave')
+  ->where('role', '=', 'asm')
+->leftjoin('area_manager','area_manager.id','=','leave.user_id')
+->select('area_manager.Name','area_manager.Mobile_Number','leave.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "retailer") {
+  $leave = DB::table('leave')
+  ->where('role', '=', 'retailers')
+->leftjoin('retailers','retailers.id','=','leave.user_id')
+->select('retailers.Name','leave.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "distributor") {
+  $leave = DB::table('leave')
+  ->where('role', '=', 'distributor')
+->leftjoin('distributor','distributor.id','=','leave.user_id')
+->select('distributor.Name','leave.*');
+}
+
+if ($request->user_id !== "All" && $request->role == "sm") {
+  $leave = DB::table('leave')
+  ->where('role', '=', 'sm')
+->leftjoin('sales_manager','sales_manager.id','=','leave.user_id')
+->where(['role' => $request->role, 'sales_manager.id' => $request->user_id])
+
+->select('sales_manager.Name','sales_manager.Mobile_Number','leave.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "sp") {
+$leave = DB::table('leave')
+// ->where('role', '=', 'sp')
+->leftjoin('sales_person','sales_person.id','=','leave.user_id')
+->where(['role' => $request->role, 'sales_person.id' => $request->user_id])
+
+->select('sales_person.Name','sales_person.Mobile_Number','leave.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "asm") {
+$leave = DB::table('leave')
+// ->where('role', '=', 'asm')
+
+->leftjoin('area_manager','area_manager.id','=','leave.user_id')
+->where(['role' => $request->role, 'area_manager.id' => $request->user_id])
+
+->select('area_manager.Name','area_manager.Mobile_Number','leave.*');
+}
+
+    if(isset($request->from_date) && isset($request->to_date)){
+        $leave= $leave->whereDate('leave.created_at','<=',$request->to_date)
+            ->whereDate('leave.created_at','>=',$request->from_date);     
     }
+    
+    $leave = $leave->orderby('id', 'asc')->get();
 
-    $leave = $leave->orderby('id', 'desc')->get();
 
+    // $document = DB::table('document');
+    // if ($request->user_id != 'All') {
+    //   $document = $document->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    // $document = $document->orderby('id', 'desc')->get();
 
     $document = DB::table('document');
-    if ($request->user_id != 'All') {
-      $document = $document->where(['role' => $request->role, 'user_id' => $request->user_id]);
+
+    // if ($request->user_id !== "All") {
+        $document = $document->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    if ($request->user_id == "All" && $request->role2 == "sm") {
+      $document = DB::table('document')
+      ->where('role', '=', 'sm')
+    ->leftjoin('sales_manager','sales_manager.id','=','document.user_id')
+    ->select('sales_manager.Name','sales_manager.Mobile_Number','document.*');
+  }
+  elseif ($request->user_id == "All" && $request->role2 == "sp") {
+    $document = DB::table('document')
+    ->where('role', '=', 'sp')
+    ->leftjoin('sales_person','sales_person.id','=','document.user_id')
+  ->select('sales_person.Name','sales_person.Mobile_Number','document.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "asm") {
+  $document = DB::table('document')
+  ->where('role', '=', 'asm')
+->leftjoin('area_manager','area_manager.id','=','document.user_id')
+->select('area_manager.Name','area_manager.Mobile_Number','document.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "retailer") {
+  $document = DB::table('document')
+  ->where('role', '=', 'retailers')
+->leftjoin('retailers','retailers.id','=','document.user_id')
+->select('retailers.Name','document.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "distributor") {
+  $document = DB::table('document')
+  ->where('role', '=', 'distributor')
+->leftjoin('distributor','distributor.id','=','document.user_id')
+->select('distributor.Name','document.*');
+}
+
+if ($request->user_id !== "All" && $request->role == "sm") {
+  $document = DB::table('document')
+  ->where('role', '=', 'sm')
+->leftjoin('sales_manager','sales_manager.id','=','document.user_id')
+->where(['role' => $request->role, 'sales_manager.id' => $request->user_id])
+
+->select('sales_manager.Name','sales_manager.Mobile_Number','document.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "sp") {
+$document = DB::table('document')
+// ->where('role', '=', 'sp')
+->leftjoin('sales_person','sales_person.id','=','document.user_id')
+->where(['role' => $request->role, 'sales_person.id' => $request->user_id])
+
+->select('sales_person.Name','sales_person.Mobile_Number','document.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "asm") {
+$document = DB::table('document')
+// ->where('role', '=', 'asm')
+
+->leftjoin('area_manager','area_manager.id','=','document.user_id')
+->where(['role' => $request->role, 'area_manager.id' => $request->user_id])
+
+->select('area_manager.Name','area_manager.Mobile_Number','document.*');
+}
+
+    if(isset($request->from_date) && isset($request->to_date)){
+        $document= $document->whereDate('document.created_at','<=',$request->to_date)
+            ->whereDate('document.created_at','>=',$request->from_date);     
     }
-    $document = $document->orderby('id', 'desc')->get();
+    
+    $document = $document->orderby('id', 'asc')->get();
 
 
+    // $visit_query = DB::table('visit');
+    // if ($request->user_id !== 'All') {
+    //   $visit_query = $visit_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+  
+    // if (isset($request->from_date) && isset($request->to_date)) {
+    //   $visit_query = $visit_query->whereDate('created_at', '<=', $request->to_date)
+    //     ->whereDate('created_at', '>=', $request->from_date);
+    // }
+    // $visit_query = $visit_query->orderby('id', 'desc')->get();
 
 
     $visit_query = DB::table('visit');
-    if ($request->user_id != 'All') {
-      $visit_query = $visit_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+
+    // if ($request->user_id !== "All") {
+        $visit_query = $visit_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    if ($request->user_id == "All" && $request->role2 == "sm") {
+      $visit_query = DB::table('visit')
+      ->where('role', '=', 'sm')
+    ->leftjoin('sales_manager','sales_manager.id','=','visit.user_id')
+    ->select('sales_manager.Name','sales_manager.Mobile_Number','visit.*');
+  }
+  elseif ($request->user_id == "All" && $request->role2 == "sp") {
+    $visit_query = DB::table('visit')
+    ->where('role', '=', 'sp')
+    ->leftjoin('sales_person','sales_person.id','=','visit.user_id')
+  ->select('sales_person.Name','sales_person.Mobile_Number','visit.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "asm") {
+  $visit_query = DB::table('visit')
+  ->where('role', '=', 'asm')
+->leftjoin('area_manager','area_manager.id','=','visit.user_id')
+->select('area_manager.Name','area_manager.Mobile_Number','visit.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "retailer") {
+  $visit_query = DB::table('visit')
+  ->where('role', '=', 'retailers')
+->leftjoin('retailers','retailers.id','=','visit.user_id')
+->select('retailers.Name','visit.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "distributor") {
+  $visit_query = DB::table('visit')
+  ->where('role', '=', 'distributor')
+->leftjoin('distributor','distributor.id','=','visit.user_id')
+->select('distributor.Name','visit.*');
+}
+
+if ($request->user_id !== "All" && $request->role == "sm") {
+  $visit_query = DB::table('visit')
+  ->where('role', '=', 'sm')
+->leftjoin('sales_manager','sales_manager.id','=','visit.user_id')
+->where(['role' => $request->role, 'sales_manager.id' => $request->user_id])
+
+->select('sales_manager.Name','sales_manager.Mobile_Number','visit.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "sp") {
+$visit_query = DB::table('visit')
+// ->where('role', '=', 'sp')
+->leftjoin('sales_person','sales_person.id','=','visit.user_id')
+->where(['role' => $request->role, 'sales_person.id' => $request->user_id])
+
+->select('sales_person.Name','sales_person.Mobile_Number','visit.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "asm") {
+$visit_query = DB::table('visit')
+// ->where('role', '=', 'asm')
+
+->leftjoin('area_manager','area_manager.id','=','visit.user_id')
+->where(['role' => $request->role, 'area_manager.id' => $request->user_id])
+
+->select('area_manager.Name','area_manager.Mobile_Number','visit.*');
+}
+
+    if(isset($request->from_date) && isset($request->to_date)){
+        $visit_query= $visit_query->whereDate('visit.created_at','<=',$request->to_date)
+            ->whereDate('visit.created_at','>=',$request->from_date);     
     }
-    $visit_query = Visit::where(['role' => $request->role, 'user_id' => $request->user_id]);
-    if (isset($request->from_date) && isset($request->to_date)) {
-      $visit_query = $visit_query->whereDate('created_at', '<=', $request->to_date)
-        ->whereDate('created_at', '>=', $request->from_date);
+    
+    $visit_query = $visit_query->orderby('id', 'asc')->get();
+
+
+
+
+     $attendance_query = DB::table('attendance');
+
+    // if ($request->user_id !== "All") {
+        $attendance_query = $attendance_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    if ($request->user_id == "All" && $request->role2 == "sm") {
+      $attendance_query = DB::table('attendance')
+      ->where('role', '=', 'sm')
+    ->leftjoin('sales_manager','sales_manager.id','=','attendance.user_id')
+    ->select('sales_manager.Name','sales_manager.Mobile_Number','attendance.*');
+  }
+  elseif ($request->user_id == "All" && $request->role2 == "sp") {
+    $attendance_query = DB::table('attendance')
+    ->where('role', '=', 'sp')
+    ->leftjoin('sales_person','sales_person.id','=','attendance.user_id')
+  ->select('sales_person.Name','sales_person.Mobile_Number','attendance.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "asm") {
+  $attendance_query = DB::table('attendance')
+  ->where('role', '=', 'asm')
+->leftjoin('area_manager','area_manager.id','=','attendance.user_id')
+->select('area_manager.Name','area_manager.Mobile_Number','attendance.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "retailer") {
+  $attendance_query = DB::table('attendance')
+  ->where('role', '=', 'retailers')
+->leftjoin('retailers','retailers.id','=','attendance.user_id')
+->select('retailers.Name','attendance.*');
+}
+elseif ($request->user_id == "All" && $request->role2 == "distributor") {
+  $attendance_query = DB::table('attendance')
+  ->where('role', '=', 'distributor')
+->leftjoin('distributor','distributor.id','=','attendance.user_id')
+->select('distributor.Name','attendance.*');
+}
+
+if ($request->user_id !== "All" && $request->role == "sm") {
+  $attendance_query = DB::table('attendance')
+  ->where('role', '=', 'sm')
+->leftjoin('sales_manager','sales_manager.id','=','attendance.user_id')
+->where(['role' => $request->role, 'sales_manager.id' => $request->user_id])
+
+->select('sales_manager.Name','sales_manager.Mobile_Number','attendance.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "sp") {
+$attendance_query = DB::table('attendance')
+// ->where('role', '=', 'sp')
+->leftjoin('sales_person','sales_person.id','=','attendance.user_id')
+->where(['role' => $request->role, 'sales_person.id' => $request->user_id])
+
+->select('sales_person.Name','sales_person.Mobile_Number','attendance.*');
+}
+elseif ($request->user_id !== "All" && $request->role == "asm") {
+$attendance_query = DB::table('attendance')
+// ->where('role', '=', 'asm')
+
+->leftjoin('area_manager','area_manager.id','=','attendance.user_id')
+->where(['role' => $request->role, 'area_manager.id' => $request->user_id])
+
+->select('area_manager.Name','area_manager.Mobile_Number','attendance.*');
+}
+
+    if(isset($request->from_date) && isset($request->to_date)){
+        $attendance_query= $attendance_query->whereDate('attendance.created_at','<=',$request->to_date)
+            ->whereDate('attendance.created_at','>=',$request->from_date);     
     }
-    $visit_query = $visit_query->orderby('id', 'desc')->get();
+    
+    $attendance_query = $attendance_query->orderby('id', 'asc')->get();
+
+    // $attendance_query = DB::table('attendance');
+
+    // if ($request->user_id !== "All") {
+    //     $attendance_query = $attendance_query->where(['role' => $request->role, 'user_id' => $request->user_id]);
+    // }
+    
+    // if(isset($request->from_date) && isset($request->to_date)){
+    //     $attendance_query= $attendance_query->whereDate('created_at','<=',$request->to_date)
+    //         ->whereDate('created_at','>=',$request->from_date);     
+    // }
+    
+    // $attendance_query = $attendance_query->orderby('id', 'asc')->get();
+    
+
+//     $attendance_query = Attendance::query(); // Start with the Attendance model query builder
+
+// if ($request->user_id != 'All') {
+//   $attendance_query = $attendance_query->where('user_id', $request->user_id);
+// }
+
+// if (isset($request->from_date) && isset($request->to_date)) {
+//   $attendance_query = $attendance_query->whereDate('created_at', '>=', $request->from_date)
+//                                          ->whereDate('created_at', '<=', $request->to_date);
+// }
+
+// // If $request->role is set, apply it to the query
+// if(isset($request->role)){
+//     $attendance_query = $attendance_query->where('role', $request->role);
+// }
+
+// // Get the results
+// $attendance_query = $attendance_query->orderBy('id', 'desc')->get();
 
 
     //   $leave = Leave :: where(['role'=>$request->role,'user_id'=>$request->user_id])->get();
@@ -97,7 +417,7 @@ class DashboardController extends Controller
     //   }
     //   $visit_query=$visit_query->get();
 
-    return view('dashboard', ['states' => $states, 'emps' => $emps, 'tt' => $tracking_query, 'asms' => $asm, 'leaves' => $leave, 'document' => $document, 'visits' => $visit_query]);
+    return view('dashboard', ['states' => $states, 'emps' => $emps, 'tt' => $tracking_query, 'asms' => $asm, 'leaves' => $leave, 'document' => $document, 'visits' => $visit_query, 'attendance' => $attendance_query]);
   }
 
   public function tracking_pdf(Request $request)
@@ -256,6 +576,12 @@ class DashboardController extends Controller
     return redirect(route('dashboard-view'))->with(['success' => true, 'message' => 'Data Successfully Deleted !']);
   }
 
+  public function destroy_attendance($id)
+  {
+    $attendance = Attendance::where('id', $id)->delete();
+    return redirect(route('dashboard-view'))->with(['success' => true, 'message' => 'Data Successfully Deleted !']);
+  }
+
   public function destroy_leave($id)
   {
     $Leave = Leave::where('id', $id)->delete();
@@ -331,7 +657,7 @@ function get_emp_by_id(Request $request)
        
         ->join('sales_person','sales_person.id','=','asm_to_sp.sp_id')
          ->leftjoin('role_master','role_master.id','=','sales_person.role_id')
-         ->select('sales_person.Name','role_master.Role')
+         ->select('sales_person.Name','sales_person.id','role_master.Role')
         ->get();
         return response()->json($data);
     }

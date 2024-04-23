@@ -161,6 +161,9 @@ class SalePersoncontroller extends Controller
    
     public function update(Request $request)
     {
+
+        $saleserson =  SalePerson::where('id', $request->id)->first();
+
 		 if ($request->hasFile('image')) {
             $file = $request->file('image');
             $filename = time() . '.' . $file->getClientOriginalExtension();
@@ -187,7 +190,7 @@ class SalePersoncontroller extends Controller
                 'Tehsil_id' => $request->tehsil,
                 'Location' => $request->location,
                 'Username' => $request->user,
-                'Password' => $request->pass,
+                'Password' => $request->pass ? Hash::make($request->get('pass')) : $saleserson->Password,
             ]
         );
         return redirect()->route('sales_person-index')->with(['success' => true, 'message' => 'Data Successfully Updated !']);

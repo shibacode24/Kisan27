@@ -13,9 +13,13 @@ use App\Http\Controllers\Areamanagercontroller;
 use App\Http\Controllers\SalePersoncontroller;
 use App\Http\Controllers\Assignteamcontroller;
 use App\Http\Controllers\sm_to_asmController;
+use App\Http\Controllers\ds_to_smController;
 use App\Http\Controllers\Regioncontroller;
 use App\Http\Controllers\asm_to_spController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DistributorController;
+use App\Http\Controllers\RetailersController;
+
 use App\Models\Newassign;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +37,9 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/', function () {
 //     return view('loginform');
 // });
+
+Route::view('privacy_policy','privacy_policy');
+// Route::view('distributor_to_sm','distributor_to_sm');
 
  Route::get('/',[logincontroller::class,'index'])->name('/');
  Route::post('check_login',[logincontroller::class,'check_login'])->name('check_login');
@@ -124,6 +131,18 @@ Route::get('get_all_id',[Salemanagercontroller::class,'get_all_id'])->name('get_
 Route::get('all',[Salemanagercontroller::class,'all'])->name('all');
 
 
+Route::get('retailers-index',[RetailersController::class,'index'])->name('retailers-index');
+Route::post('create-retailers',[RetailersController::class,'create'])->name('create-retailers');
+Route::get('destroy-retailers/{id}',[RetailersController::class,'destroy'])->name('destroy-retailers');
+Route::get('edit-retailers/{id}',[RetailersController::class,'edit'])->name('edit-retailers');
+Route::post('update-retailers',[RetailersController::class,'update'])->name('update-retailers');
+
+Route::get('distributor-index',[DistributorController::class,'index'])->name('distributor-index');
+Route::post('create-distributor',[DistributorController::class,'create'])->name('create-distributor');
+Route::get('destroy-distributor/{id}',[DistributorController::class,'destroy'])->name('destroy-distributor');
+Route::get('edit-distributor/{id}',[DistributorController::class,'edit'])->name('edit-distributor');
+Route::post('update-distributor',[DistributorController::class,'update'])->name('update-distributor');
+
 
 Route::get('area_manager-index',[Areamanagercontroller::class,'index'])->name('area_manager-index');
 Route::post('create-area_manager',[Areamanagercontroller::class,'create'])->name('create-area_manager');
@@ -171,7 +190,11 @@ Route::get('delete-sm_to_asm/{id}',[sm_to_asmController::class,'delete'])->name(
 Route::get('edit-sm_to_asm/{id}',[sm_to_asmController::class,'edit'])->name('edit-sm_to_asm');
 Route::post('update-sm_to_asm',[sm_to_asmController::class,'update'])->name('update-sm_to_asm');
 
-
+Route::get('ds_to_sm-index',[ds_to_smController::class,'index'])->name('ds_to_sm-index');
+Route::post('create-ds_to_sm',[ds_to_smController::class,'create'])->name('create-ds_to_sm');
+Route::get('delete-ds_to_sm/{id}',[ds_to_smController::class,'delete'])->name('delete_ds_to_sm');
+Route::get('edit-ds_to_sm/{id}',[ds_to_smController::class,'edit'])->name('edit-ds_to_sm');
+Route::post('update-ds_to_sm',[ds_to_smController::class,'update'])->name('update-ds_to_sm');
 
 
 
@@ -207,6 +230,8 @@ Route::get('leave_pdf',[DashboardController::class,'leave_pdf'])->name('pdf_leav
 Route::get('visit_pdf',[DashboardController::class,'visit_pdf'])->name('pdf_visit');
 
 Route::get('get_emp_by_id',[DashboardController::class,'get_emp_by_id'])->name('get_emp_by_id');
+
+Route::get('destroy-attendance/{id}',[DashboardController::class,'destroy-attendance'])->name('destroy-attendance');
 
 
 
